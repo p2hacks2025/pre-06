@@ -11,10 +11,15 @@ class AuthService {
     final current = _auth.currentUser;
     if (current != null) return current;
 
-    final cred = await _auth.signInAnonymously();
-    final user = cred.user!;
-    await _ensureUserDoc(user.uid);
-    return user;
+    try {
+      final cred = await _auth.signInAnonymously();
+      final user = cred.user!;
+      await _ensureUserDoc(user.uid);
+      return user;
+    } catch (e) {
+      print('Firebase Auth Error: $e');
+      rethrow;
+    }
   }
 
   Future<void> _ensureUserDoc(String uid) async {
