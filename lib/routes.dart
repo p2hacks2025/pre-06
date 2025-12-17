@@ -5,6 +5,7 @@ import 'screens/timeline/timeline_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/profile_edit_page.dart';
 
+
 final Map<String, WidgetBuilder> appRoutes = {
   '/home': (_) => const HomeScreen(),
   '/post': (_) => const PostScreen(),
