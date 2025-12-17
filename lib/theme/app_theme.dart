@@ -5,7 +5,7 @@ class AppTheme {
   static const cream = Color(0xFFFAF6F1);
   static const warmBeige = Color(0xFFE8DED2);
   static const softPeach = Color(0xFFEBD4C7);
-  static const terracotta = Color(0xFFB67162);
+  static const terracotta = Color.fromARGB(255, 225, 171, 219);
   static const oliveGreen = Color(0xFF8B9B7E);
   static const charcoal = Color(0xFF3D3935);
   static const softGray = Color(0xFF8C8682);

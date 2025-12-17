@@ -15,6 +15,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   String promptText = '';
   bool loading = true;
+  bool hasPostedToday = false;
+
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -46,23 +48,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _load() async {
-    final p = await _prompt.getTodayPrompt();
-    final posted = await _post.hasPostedToday();
-    if (!mounted) return;
+  final p = await _prompt.getTodayPrompt();
+  final posted = await _post.hasPostedToday();
+  if (!mounted) return;
 
-    setState(() {
-      promptText = p.text;
-      loading = false;
-    });
+  setState(() {
+    promptText = p.text;
+    loading = false;
+    hasPostedToday = posted;
+  });
 
-    _controller.forward();
-
-    if (posted) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/timeline');
-    }
-  }
+  _controller.forward();
+}
 
   @override
   void dispose() {
@@ -179,33 +176,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                   // Post button with gradient background
                   Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.terracotta.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pushNamed(context, '/post'),
-                        child: const Text('投稿する'),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Profile link
-                  Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/profile'),
-                      child: const Text('プロフィール（自分の投稿履歴）'),
-                    ),
-                  ),
+  child: hasPostedToday
+      ? const Text(
+          '今日はもう投稿済みです',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey,
+          ),
+        )
+      : Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.terracotta.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: () => Navigator.pushNamed(context, '/post'),
+            child: const Text('投稿する'),
+          ),
+        ),
+),
 
                   const Spacer(flex: 1),
                 ],
