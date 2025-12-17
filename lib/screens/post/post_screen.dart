@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/post_service.dart';
 import '../../theme/app_theme.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({super.key});
@@ -8,13 +10,25 @@ class PostScreen extends StatefulWidget {
   State<PostScreen> createState() => _PostScreenState();
 }
 
-class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateMixin {
+class _PostScreenState extends State<PostScreen>
+    with SingleTickerProviderStateMixin {
   final _post = PostService();
   final _controller = TextEditingController();
+
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
   bool sending = false;
   String? error;
 
   static const maxChars = 200;
+
+  bool get _hasText => _controller.text.trim().isNotEmpty;
+  bool get _hasImage => _selectedImage != null;
+  bool get _isPhotoDisabled => _hasText;
+
+  // 送信ボタンの有効化条件（写真がある、または、文字がある）
+  bool get _isReadyToSubmit => _hasImage || _hasText;
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
@@ -28,22 +42,15 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
 
     _animController.forward();
     _controller.addListener(() => setState(() {}));
@@ -57,20 +64,39 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _submit() async {
-    if (_controller.text.trim().isEmpty) return;
+    if (!_isReadyToSubmit) return;
 
     setState(() {
       sending = true;
       error = null;
     });
+
     try {
-      await _post.createTextPost(text: _controller.text, maxChars: maxChars);
+      if (_selectedImage != null) {
+        await _post.createPhotoPost(file: _selectedImage!);
+      } else {
+        await _post.createTextPost(text: _controller.text, maxChars: maxChars);
+      }
+
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/timeline');
     } catch (e) {
       setState(() => error = e.toString());
     } finally {
       if (mounted) setState(() => sending = false);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+        _controller.clear(); // 写真を選んだら文字を消す
+        error = null;
+      });
     }
   }
 
@@ -99,8 +125,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 8),
-
-                  // Instruction text
                   Text(
                     '今日の瞬間をひとこと',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -109,10 +133,9 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   const SizedBox(height: 24),
 
-                  // Text input container
+                  // pohto post
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(24),
@@ -127,116 +150,141 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                           ),
                         ],
                       ),
-                      child: TextField(
-                        controller: _controller,
-                        maxLength: maxChars,
-                        maxLines: null,
-                        autofocus: true,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontSize: 18,
-                          height: 1.8,
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'ここに書いてください…',
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          counterText: '',
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
+                      child: _selectedImage != null
+                          ? Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // preview button
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.file(
+                                    _selectedImage!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                // photo delete button
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _selectedImage = null),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            blurRadius: 10,
+                                            color: Colors.black12,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.close_rounded,
+                                        color: Colors.red,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : TextField(
+                              controller: _controller,
+                              maxLength: maxChars,
+                              maxLines: null,
+                              autofocus: true,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(fontSize: 18, height: 1.8),
+                              decoration: const InputDecoration(
+                                hintText: 'ここに書いてください…',
+                                border: InputBorder.none,
+                                counterText: '',
+
+                                //delete line
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Character counter with visual indicator
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: CircularProgressIndicator(
-                              value: percentage,
-                              strokeWidth: 2,
-                              backgroundColor: AppTheme.warmBeige,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                percentage > 0.9
-                                    ? AppTheme.terracotta
-                                    : AppTheme.oliveGreen,
+                  // 文字数カウンター（写真がない時だけ表示）
+                  if (!_hasImage)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                value: percentage,
+                                strokeWidth: 2,
+                                backgroundColor: AppTheme.warmBeige,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  percentage > 0.9
+                                      ? AppTheme.terracotta
+                                      : AppTheme.oliveGreen,
+                                ),
                               ),
                             ),
-                          ),
-                          Text(
-                            '$remaining',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: percentage > 0.9
-                                  ? AppTheme.terracotta
-                                  : AppTheme.softGray,
+                            Text(
+                              '$remaining',
+                              style: const TextStyle(fontSize: 12),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                          ],
+                        ),
+                      ],
+                    ),
 
                   if (error != null) ...[
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.terracotta.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        error!,
-                        style: TextStyle(
-                          color: AppTheme.terracotta,
-                          fontSize: 13,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                    Text(
+                      error!,
+                      style: TextStyle(color: AppTheme.terracotta),
+                      textAlign: TextAlign.center,
                     ),
                   ],
 
                   const SizedBox(height: 24),
 
-                  // Submit button
+                  // 投稿ボタン
                   Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.terracotta.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: sending || charCount == 0 ? null : _submit,
-                        child: sending
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: AppTheme.cream,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('投稿する'),
-                      ),
+                    child: ElevatedButton(
+                      onPressed: sending || !_isReadyToSubmit ? null : _submit,
+                      child: sending
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('投稿する'),
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
+
+                  // 写真選択ボタン
+                  if (!_hasImage) // 写真が未選択のときだけ表示
+                    ElevatedButton.icon(
+                      onPressed: _isPhotoDisabled ? null : _pickImage,
+                      icon: const Icon(Icons.image),
+                      label: const Text('写真を選択'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.softGray.withOpacity(0.1),
+                        foregroundColor: AppTheme.oliveGreen,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

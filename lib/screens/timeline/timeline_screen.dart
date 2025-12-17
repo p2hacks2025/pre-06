@@ -4,6 +4,7 @@ import '../../services/timeline_service.dart';
 import '../../services/post_service.dart';
 import '../../models/post_model.dart';
 import '../../theme/app_theme.dart';
+import 'dart:io'; //file class
 
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
@@ -12,7 +13,8 @@ class TimelineScreen extends StatefulWidget {
   State<TimelineScreen> createState() => _TimelineScreenState();
 }
 
-class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProviderStateMixin {
+class _TimelineScreenState extends State<TimelineScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
@@ -24,9 +26,10 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -50,7 +53,7 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
           IconButton(
             onPressed: () => Navigator.pushNamed(context, '/profile'),
             icon: const Icon(Icons.person_outline),
-          )
+          ),
         ],
       ),
       body: FadeTransition(
@@ -77,10 +80,7 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    '·',
-                    style: TextStyle(color: AppTheme.softGray),
-                  ),
+                  Text('·', style: TextStyle(color: AppTheme.softGray)),
                   const SizedBox(width: 8),
                   Text(
                     'スクショ非推奨',
@@ -120,9 +120,8 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                           const SizedBox(height: 16),
                           Text(
                             'まだ投稿がありません',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              letterSpacing: 0.5,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(letterSpacing: 0.5),
                           ),
                         ],
                       ),
@@ -130,7 +129,10 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: posts.length,
                     itemBuilder: (context, i) {
                       final p = posts[i];
@@ -166,13 +168,68 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Post content
-                              Text(
-                                p.type == PostType.text ? (p.text ?? '') : '📷 写真投稿',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontSize: 16,
-                                  height: 1.7,
+                              //photo display
+                              if (p.type == PostType.photo &&
+                                  p.photoUrl != null) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child:
+                                      p.photoUrl!.startsWith('http') //バック出来たら変更
+                                      ? Image.network(
+                                          p.photoUrl!,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          //photo loading placefolder
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return AspectRatio(
+                                              aspectRatio: 16 / 9,
+                                              child: Center(
+                                                child: CircularProgressIndicator(
+                                                  value:
+                                                      loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                      : null,
+                                                  color: AppTheme.oliveGreen,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      //バック出来たら変更
+                                      : Image.file(
+                                          File(p.photoUrl!),
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const AspectRatio(
+                                                    aspectRatio: 16 / 9,
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons.broken_image,
+                                                      ),
+                                                    ),
+                                                  ),
+                                        ),
                                 ),
-                              ),
+                                //ここまで
+                                const SizedBox(height: 12),
+                              ],
+
+                              //expression text
+                              if (p.text != null && p.text!.isNotEmpty)
+                                Text(
+                                  p.text!,
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(fontSize: 16, height: 1.7),
+                                ),
 
                               const SizedBox(height: 16),
 
@@ -186,15 +243,20 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.warmBeige.withOpacity(0.5),
+                                      color: AppTheme.warmBeige.withOpacity(
+                                        0.5,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       p.dayKey,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
                                   ),
 
@@ -215,18 +277,27 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                                             title: const Text('投稿を削除'),
                                             content: const Text('本当に削除しますか？'),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                             ),
                                             actions: [
                                               TextButton(
-                                                onPressed: () => Navigator.pop(context, false),
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  false,
+                                                ),
                                                 child: const Text('キャンセル'),
                                               ),
                                               TextButton(
-                                                onPressed: () => Navigator.pop(context, true),
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  true,
+                                                ),
                                                 child: Text(
                                                   '削除',
-                                                  style: TextStyle(color: AppTheme.terracotta),
+                                                  style: TextStyle(
+                                                    color: AppTheme.terracotta,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -245,13 +316,16 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                                         size: 20,
                                       ),
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
                                             content: const Text('通報機能は準備中です'),
                                             backgroundColor: AppTheme.charcoal,
                                             behavior: SnackBarBehavior.floating,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
                                         );
