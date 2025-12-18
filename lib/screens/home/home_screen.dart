@@ -9,14 +9,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final _post = PostService();
   final _prompt = PromptService();
 
   String promptText = '';
   bool loading = true;
   bool hasPostedToday = false;
-
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -48,18 +48,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _load() async {
-  final p = await _prompt.getTodayPrompt();
-  final posted = await _post.hasPostedToday();
-  if (!mounted) return;
+    final p = await _prompt.getTodayPrompt();
+    final posted = await _post.hasPostedToday();
+    if (!mounted) return;
 
-  setState(() {
-    promptText = p.text;
-    loading = false;
-    hasPostedToday = posted;
-  });
+    setState(() {
+      promptText = p.text;
+      loading = false;
+      hasPostedToday = posted;
+    });
 
-  _controller.forward();
-}
+    _controller.forward();
+  }
 
   @override
   void dispose() {
@@ -176,31 +176,29 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                   // Post button with gradient background
                   Center(
-  child: hasPostedToday
-      ? const Text(
-          '今日はもう投稿済みです',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey,
-          ),
-        )
-      : Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.terracotta.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/post'),
-            child: const Text('投稿する'),
-          ),
-        ),
-),
+                    child: hasPostedToday
+                        ? const Text(
+                            '今日はもう投稿済みです',
+                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.terracotta.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, '/post'),
+                              child: const Text('投稿する'),
+                            ),
+                          ),
+                  ),
 
                   const Spacer(flex: 1),
                 ],
@@ -212,4 +210,3 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 }
-
