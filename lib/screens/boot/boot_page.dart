@@ -11,22 +11,15 @@ class _BootPageState extends State<BootPage> {
   @override
   void initState() {
     super.initState();
-    _goNext();
-  }
 
-  void _goNext() {
-    // build後に遷移させる
+    // build 後に login へ
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushReplacementNamed(context, '/profile/edit');
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

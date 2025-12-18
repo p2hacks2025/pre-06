@@ -55,11 +55,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBp2r1E7neUO5Tb4fuCsZrxM16n8Igtows',
-    appId: '1:709750327942:ios:6014c658816a9b30655f07',
-    messagingSenderId: '709750327942',
-    projectId: 'muku2025',
-    storageBucket: 'muku2025.firebasestorage.app',
+    apiKey: 'AIzaSyCRNYsmJErY7fmh-H9GqtREn0PZu9UOWJY',
+    appId: '1:276627586590:ios:a697eae3a7987793feb80f',
+    messagingSenderId: '276627586590',
+    projectId: 'muku-518b7',
+    storageBucket: 'muku-518b7.firebasestorage.app',
     iosBundleId: 'com.example.muku',
   );
 
