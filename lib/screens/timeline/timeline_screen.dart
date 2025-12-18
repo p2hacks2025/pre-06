@@ -164,174 +164,255 @@ class _TimelineScreenState extends State<TimelineScreen>
                               ),
                             ],
                           ),
-                          child: Column(
+
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Post content
-                              //photo display
-                              if (p.type == PostType.photo &&
-                                  p.photoUrl != null) ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child:
-                                      p.photoUrl!.startsWith('http') //バック出来たら変更
-                                      ? Image.network(
-                                          p.photoUrl!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          //photo loading placefolder
-                                          loadingBuilder: (context, child, loadingProgress) {
-                                            if (loadingProgress == null)
-                                              return child;
-                                            return AspectRatio(
-                                              aspectRatio: 16 / 9,
-                                              child: Center(
-                                                child: CircularProgressIndicator(
-                                                  value:
-                                                      loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                                .cumulativeBytesLoaded /
-                                                            loadingProgress
-                                                                .expectedTotalBytes!
-                                                      : null,
-                                                  color: AppTheme.oliveGreen,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        )
-                                      //バック出来たら変更
-                                      : Image.file(
-                                          File(p.photoUrl!),
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const AspectRatio(
-                                                    aspectRatio: 16 / 9,
-                                                    child: Center(
-                                                      child: Icon(
-                                                        Icons.broken_image,
+                              //add Icon
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppTheme.softPeach.withOpacity(
+                                  0.5,
+                                ),
+                                child: Icon(
+                                  Icons.person_outline,
+                                  size: 20,
+                                  color: AppTheme.terracotta,
+                                ),
+                              ),
+
+                              const SizedBox(width: 16),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    //user name & post time & button
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'muku', //user name
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          "${p.createdAt.hour.toString().padLeft(2, '0')}:${p.createdAt.minute.toString().padLeft(2, '0')}",
+                                          style: TextStyle(
+                                            color: AppTheme.softGray,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+
+                                        //action button
+                                        const Spacer(),
+
+                                        if (isMyPost)
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.delete_outline,
+                                              color: AppTheme.terracotta,
+                                              size: 20,
+                                            ),
+                                            onPressed: () async {
+                                              final confirm = await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: const Text('投稿を削除'),
+                                                  content: const Text(
+                                                    '本当に削除しますか？',
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            context,
+                                                            false,
+                                                          ),
+                                                      child: const Text(
+                                                        'キャンセル',
                                                       ),
                                                     ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            context,
+                                                            true,
+                                                          ),
+                                                      child: Text(
+                                                        '削除',
+                                                        style: TextStyle(
+                                                          color: AppTheme
+                                                              .terracotta,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirm == true) {
+                                                await postService.deletePost(
+                                                  p.id,
+                                                );
+                                              }
+                                            },
+                                          )
+                                        else
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.flag_outlined,
+                                              color: AppTheme.softGray,
+                                              size: 20,
+                                            ),
+                                            onPressed: () {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                    '通報機能は準備中です',
                                                   ),
+                                                  backgroundColor:
+                                                      AppTheme.charcoal,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // Post content
+                                    //photo display
+                                    if (p.type == PostType.photo &&
+                                        p.photoUrl != null) ...[
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child:
+                                            p.photoUrl!.startsWith(
+                                              'http',
+                                            ) //バック出来たら変更
+                                            ? Image.network(
+                                                p.photoUrl!,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                //photo loading placefolder
+                                                loadingBuilder: (context, child, loadingProgress) {
+                                                  if (loadingProgress == null) {
+                                                    return child;
+                                                  }
+                                                  return AspectRatio(
+                                                    aspectRatio: 16 / 9,
+                                                    child: Center(
+                                                      child: CircularProgressIndicator(
+                                                        value:
+                                                            loadingProgress
+                                                                    .expectedTotalBytes !=
+                                                                null
+                                                            ? loadingProgress
+                                                                      .cumulativeBytesLoaded /
+                                                                  loadingProgress
+                                                                      .expectedTotalBytes!
+                                                            : null,
+                                                        color:
+                                                            AppTheme.oliveGreen,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            //バック出来たら変更
+                                            : Image.file(
+                                                File(p.photoUrl!),
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) => const AspectRatio(
+                                                      aspectRatio: 16 / 9,
+                                                      child: Center(
+                                                        child: Icon(
+                                                          Icons.broken_image,
+                                                        ),
+                                                      ),
+                                                    ),
+                                              ),
+                                      ),
+                                      //ここまで
+                                      const SizedBox(height: 12),
+                                    ],
+
+                                    //expression text
+                                    if (p.text != null && p.text!.isNotEmpty)
+                                      Text(
+                                        p.text!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              fontSize: 16,
+                                              height: 1.7,
+                                            ),
+                                      ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Footer with actions
+                                    Row(
+                                      children: [
+                                        // Day indicator
+                                        /*日付表示のため削除
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.warmBeige
+                                                .withOpacity(0.5),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            p.dayKey,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                          ),
                                         ),
+
+                                        const Spacer(),
+                                        */
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                //ここまで
-                                const SizedBox(height: 12),
-                              ],
-
-                              //expression text
-                              if (p.text != null && p.text!.isNotEmpty)
-                                Text(
-                                  p.text!,
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(fontSize: 16, height: 1.7),
-                                ),
-
-                              const SizedBox(height: 16),
-
-                              // Footer with actions
-                              Row(
-                                children: [
-                                  // Day indicator
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.warmBeige.withOpacity(
-                                        0.5,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      p.dayKey,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                  ),
-
-                                  const Spacer(),
-
-                                  // Action button
-                                  if (isMyPost)
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.delete_outline,
-                                        color: AppTheme.terracotta,
-                                        size: 20,
-                                      ),
-                                      onPressed: () async {
-                                        final confirm = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('投稿を削除'),
-                                            content: const Text('本当に削除しますか？'),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                                child: const Text('キャンセル'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  true,
-                                                ),
-                                                child: Text(
-                                                  '削除',
-                                                  style: TextStyle(
-                                                    color: AppTheme.terracotta,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                        if (confirm == true) {
-                                          await postService.deletePost(p.id);
-                                        }
-                                      },
-                                    )
-                                  else
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.flag_outlined,
-                                        color: AppTheme.softGray,
-                                        size: 20,
-                                      ),
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: const Text('通報機能は準備中です'),
-                                            backgroundColor: AppTheme.charcoal,
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                ],
                               ),
                             ],
                           ),
