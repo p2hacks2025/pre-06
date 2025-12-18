@@ -94,9 +94,7 @@ class _InputField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         obscureText: obscureText,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-        ),
+        decoration: const InputDecoration(border: InputBorder.none),
       ),
     );
   }
@@ -112,10 +110,7 @@ class _Label extends StatelessWidget {
       width: 260,
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
     );
   }
