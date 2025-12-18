@@ -5,6 +5,7 @@ import '../../services/post_service.dart';
 import '../../models/post_model.dart';
 import '../../theme/app_theme.dart';
 import 'dart:io'; //file class
+import '../../widgets/bottom_nav.dart';
 
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
@@ -55,6 +56,9 @@ class _TimelineScreenState extends State<TimelineScreen>
             icon: const Icon(Icons.person_outline),
           ),
         ],
+      ),
+      bottomNavigationBar: const BottomNav(
+        currentIndex: 1, // ◇ Timeline
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,

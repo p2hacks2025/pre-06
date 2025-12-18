@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/post_service.dart';
 import '../../services/prompt_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -91,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
@@ -207,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
+      bottomNavigationBar: const BottomNav(currentIndex: 0),
     );
   }
 }
