@@ -23,7 +23,10 @@ class PostService {
     return q.docs.isNotEmpty;
   }
 
-  Future<void> createTextPost({required String text, int maxChars = 200}) async {
+  Future<void> createTextPost({
+    required String text,
+    int maxChars = 200,
+  }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) throw Exception('テキストが空です');
     if (trimmed.length > maxChars) throw Exception('文字数が多すぎます（最大$maxChars文字）');
@@ -42,20 +45,32 @@ class PostService {
     });
   }
 
-  Future<void> createPhotoPost({required File file}) async {
+  Future<void> createPhotoPost({required File file, String? text}) async {
+    final trimmedText = text?.trim();
+
+    if (trimmedText != null && trimmedText.isNotEmpty) {
+      throw Exception('写真投稿時にはテキストは使用できません。');
+    }
+
     final dayKey = DayKey.fromNow(boundaryHour: 5);
     if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
 
-    final path = 'posts/$_uid/$dayKey/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    //ダミー処理　バックできそうなら、変更！
+    /* final path =
+        'posts/$_uid/$dayKey/${DateTime.now().millisecondsSinceEpoch}.jpg';
     final task = await _storage.ref(path).putFile(file);
     final url = await task.ref.getDownloadURL();
+  */
+
+    final fakeUrl = file.path;
+    //ダミー処理　ここまで！
 
     await _db.collection('posts').add({
       'uid': _uid,
       'dayKey': dayKey,
       'type': 'photo',
       'text': null,
-      'photoUrl': url,
+      'photoUrl': fakeUrl,
       'createdAt': FieldValue.serverTimestamp(),
       'deletedAt': null,
     });
