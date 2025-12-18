@@ -1,15 +1,3 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        
-        // Firebase のファイルを読み込むための鍵
-        classpath("com.google.gms:google-services:4.4.1")
-    }
-}
-
 allprojects {
     repositories {
         google()
