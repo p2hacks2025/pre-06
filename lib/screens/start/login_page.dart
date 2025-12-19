@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                     'ログイン',
                     style: TextStyle(
                       color: Color(0xFF3E4A78),
-                      fontSize: 16,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

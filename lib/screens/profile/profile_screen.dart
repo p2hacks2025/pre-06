@@ -1,216 +1,204 @@
 import 'package:flutter/material.dart';
-import '../../services/post_service.dart';
 import '../../models/post_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
+  // 🔹 仮データ
+  List<Post> get dummyPosts => [
+    Post(
+      id: '1',
+      uid: 'me',
+      userName: 'muku-69',
+      userColor: AppTheme.terracotta.value, // ← .value 必須！
+      dayKey: '2025-01-18',
+      type: PostType.text,
+      text: '今日は朝の光がきれいだった',
+      photoUrl: null,
+      createdAt: DateTime.now(),
+    ),
+    Post(
+      id: '2',
+      uid: 'me',
+      userName: 'muku-69',
+      userColor: AppTheme.oliveGreen.value,
+      dayKey: '2025-01-17',
+      type: PostType.text,
+      text: 'コーヒーがいつもより美味しく感じた',
+      photoUrl: null,
+      createdAt: DateTime.now(),
+    ),
+  ];
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
+  void _showPostDetail(BuildContext context, Post post) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.2),
+      builder: (_) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          decoration: BoxDecoration(
+            color: AppTheme.cream,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// --- ハンドル ---
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.softGray.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
+                /// --- 日付 ---
+                Text(
+                  post.dayKey,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 12,
+                    letterSpacing: 1.2,
+                    color: AppTheme.softGray,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// --- お題ラベル ---
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.terracotta.withOpacity(0.15),
+                        AppTheme.oliveGreen.withOpacity(0.15),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '今日のお題',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// --- お題本文（仮） ---
+                Text(
+                  '今日いちばん心が動いた瞬間',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontSize: 22,
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                /// --- 投稿本文 ---
+                Text(
+                  post.text ?? '',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 17,
+                    height: 1.8,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                /// --- 閉じるボタン ---
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('閉じる'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final postService = PostService();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('プロフィール'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      bottomNavigationBar: const BottomNav(
-        currentIndex: 2, // 👤 Profile
-      ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: StreamBuilder<List<Post>>(
-          stream: postService.myPostsStream(),
-          builder: (context, snap) {
-            if (!snap.hasData) {
-              return Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.terracotta,
-                  strokeWidth: 2,
-                ),
-              );
-            }
-
-            final posts = snap.data!;
-
-            if (posts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.history_outlined,
-                      size: 64,
-                      color: AppTheme.softGray.withOpacity(0.5),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'まだ投稿がありません',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(letterSpacing: 0.5),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '今日のお題に投稿してみましょう',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return CustomScrollView(
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'あなたの投稿',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.displayMedium?.copyWith(fontSize: 28),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${posts.length}件の記録',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(letterSpacing: 1.0),
+      appBar: AppBar(title: const Text('プロフィール')),
+      bottomNavigationBar: const BottomNav(currentIndex: 2),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: const [
+                  CircleAvatar(radius: 36, child: Icon(Icons.person, size: 36)),
+                  SizedBox(height: 12),
+                  Text('muku-69'),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, i) {
+                final post = dummyPosts[i];
+                return GestureDetector(
+                  onTap: () => _showPostDetail(context, post),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.softGray.withOpacity(0.08),
+                          blurRadius: 20,
                         ),
                       ],
                     ),
+                    child: Text(
+                      post.text!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-
-                // Posts grid
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, i) {
-                      final p = posts[i];
-                      return TweenAnimationBuilder<double>(
-                        duration: Duration(milliseconds: 300 + (i * 50)),
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        builder: (context, value, child) {
-                          return Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - value)),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.softGray.withOpacity(0.08),
-                                blurRadius: 20,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Date badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppTheme.terracotta.withOpacity(0.1),
-                                      AppTheme.oliveGreen.withOpacity(0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  p.dayKey,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: 0.5,
-                                      ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Post content
-                              Text(
-                                p.type == PostType.text
-                                    ? (p.text ?? '')
-                                    : '📷 写真投稿',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(fontSize: 16, height: 1.7),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }, childCount: posts.length),
-                  ),
-                ),
-
-                // Bottom spacing
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              ],
-            );
-          },
-        ),
+                );
+              }, childCount: dummyPosts.length),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+        ],
       ),
     );
   }
