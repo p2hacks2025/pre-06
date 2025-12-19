@@ -9,6 +9,8 @@ class Post {
   final PostType type;
   final String? text;
   final String? photoUrl;
+  final String userName;
+  final int userColor;
   final DateTime createdAt;
   final DateTime? deletedAt;
 
@@ -19,6 +21,8 @@ class Post {
     required this.type,
     this.text,
     this.photoUrl,
+    required this.userName,
+    required this.userColor,
     required this.createdAt,
     this.deletedAt,
   });
@@ -29,9 +33,13 @@ class Post {
       id: doc.id,
       uid: data['uid'] as String,
       dayKey: data['dayKey'] as String,
-      type: (data['type'] as String) == 'photo' ? PostType.photo : PostType.text,
+      type: (data['type'] as String) == 'photo'
+          ? PostType.photo
+          : PostType.text,
       text: data['text'] as String?,
       photoUrl: data['photoUrl'] as String?,
+      userName: data['userName'] ?? 'muku',
+      userColor: data['userColor'] ?? 0xFF9E9E9E,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       deletedAt: (data['deletedAt'] as Timestamp?)?.toDate(),
     );
