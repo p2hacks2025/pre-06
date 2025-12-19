@@ -32,7 +32,29 @@ class PostService {
     if (trimmed.length > maxChars) throw Exception('文字数が多すぎます（最大$maxChars文字）');
 
     final dayKey = DayKey.fromNow(boundaryHour: 5);
-    if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
+    //if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
+
+    final demoNames = [
+      'mun',
+      'noon',
+      'ばらね',
+      '73cham',
+      'ぺちか',
+      'ひろろん',
+      'あんぱん',
+      'たけ',
+    ]; //randome user name
+    // 2. その中からランダムに1つ選ぶ
+    final randomName = (demoNames..shuffle()).first;
+
+    final demoColors = [
+      0xFFE57373,
+      0xFF64B5F6,
+      0xFF81C784,
+      0xFFFFB74D,
+      0xFFBA68C8,
+    ];
+    final randomColorValue = (demoColors..shuffle()).first;
 
     await _db.collection('posts').add({
       'uid': _uid,
@@ -40,6 +62,8 @@ class PostService {
       'type': 'text',
       'text': trimmed,
       'photoUrl': null,
+      'userName': randomName, //username
+      'userColor': randomColorValue, //icon color
       'createdAt': FieldValue.serverTimestamp(),
       'deletedAt': null,
     });
@@ -53,7 +77,8 @@ class PostService {
     }
 
     final dayKey = DayKey.fromNow(boundaryHour: 5);
-    if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
+    if (await hasPostedToday())
+      throw Exception('今日はすでに投稿済みです'); //何回でも投稿できるようにするなら変更
 
     //ダミー処理　バックできそうなら、変更！
     /* final path =
@@ -61,6 +86,26 @@ class PostService {
     final task = await _storage.ref(path).putFile(file);
     final url = await task.ref.getDownloadURL();
   */
+    final demoNames = [
+      'mun',
+      'noon',
+      'ばらね',
+      '73cham',
+      'ぺちか',
+      'ひろろん',
+      'あんぱん',
+      'たけ',
+    ];
+    final randomName = (demoNames..shuffle()).first;
+
+    final demoColors = [
+      0xFFE57373,
+      0xFF64B5F6,
+      0xFF81C784,
+      0xFFFFB74D,
+      0xFFBA68C8,
+    ];
+    final randomColorValue = (demoColors..shuffle()).first;
 
     final fakeUrl = file.path;
     //ダミー処理　ここまで！
@@ -71,6 +116,8 @@ class PostService {
       'type': 'photo',
       'text': null,
       'photoUrl': fakeUrl,
+      'userName': randomName,
+      'userColor': randomColorValue,
       'createdAt': FieldValue.serverTimestamp(),
       'deletedAt': null,
     });
