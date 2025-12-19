@@ -11,6 +11,8 @@ class ProfileScreen extends StatelessWidget {
     Post(
       id: '1',
       uid: 'me',
+      userName: 'muku-69',
+      userColor: AppTheme.terracotta.value, // ← .value 必須！
       dayKey: '2025-01-18',
       type: PostType.text,
       text: '今日は朝の光がきれいだった',
@@ -20,6 +22,8 @@ class ProfileScreen extends StatelessWidget {
     Post(
       id: '2',
       uid: 'me',
+      userName: 'muku-69',
+      userColor: AppTheme.oliveGreen.value,
       dayKey: '2025-01-17',
       type: PostType.text,
       text: 'コーヒーがいつもより美味しく感じた',
