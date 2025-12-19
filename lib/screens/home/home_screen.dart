@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() {
       promptText = p.text;
       loading = false;
-      hasPostedToday = posted;
+      hasPostedToday = posted; //何回でも投稿できるようにするなら消す
     });
 
     _controller.forward();
