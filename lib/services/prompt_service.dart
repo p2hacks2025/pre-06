@@ -16,7 +16,12 @@ class PromptService {
     final start = DayKey.slotStart(dayKey, boundaryHour: 5);
     final end = DayKey.slotEnd(dayKey, boundaryHour: 5);
 
-    final prompt = Prompt(dayKey: dayKey, text: '今日の余白', startsAt: start, endsAt: end);
+    final prompt = Prompt(
+      dayKey: dayKey,
+      text: '小さな幸せ',
+      startsAt: start,
+      endsAt: end,
+    );
 
     // 後から差し替えできるように一旦作っておく運用もあり
     await ref.set({
