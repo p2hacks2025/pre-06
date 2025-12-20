@@ -31,8 +31,5 @@ jobs:
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
 
-      - name: Build APK
-        run: flutter build apk --release
-
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
