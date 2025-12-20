@@ -170,14 +170,22 @@ class ProfileScreen extends StatelessWidget {
                       snapshot.data?.data() as Map<String, dynamic>?;
                   final name = userData?['nickname'] ?? 'muku-69';
                   final sns = userData?['sns'] ?? '';
+                  final photoUrl = userData?['photoUrl'] as String?;
+
+                  // デバッグ用ログ
+                  print('📸 Profile Screen - photoUrl: $photoUrl');
+                  print('📸 Profile Screen - userData: $userData');
 
                   return Column(
                     children: [
                       CircleAvatar(
                         radius: 36,
-                        backgroundImage: const AssetImage('assets/images/profile.jpg'),
-                        onBackgroundImageError: (_, __) {},
-                        child: Container(),
+                        backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                            ? NetworkImage(photoUrl) as ImageProvider
+                            : const AssetImage('assets/images/profile.jpg'),
+                        onBackgroundImageError: (exception, stackTrace) {
+                          print('❌ Profile image load error: $exception');
+                        },
                       ),
                       const SizedBox(height: 12),
 

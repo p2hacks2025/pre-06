@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/post_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
+import '../../services/timeline_service.dart';
 
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
@@ -17,7 +19,7 @@ class _TimelineScreenState extends State<TimelineScreen>
   late Animation<double> _fadeAnimation;
 
   /// ===== モック投稿データ =====
-  final List<Post> mockPosts = [
+  static final List<Post> mockPosts = [
     Post(
       id: '1',
       uid: 'u1',
@@ -137,82 +139,156 @@ class _TimelineScreenState extends State<TimelineScreen>
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final uid = currentUser?.uid ?? 'anonymous';
+    final timeline = TimelineService();
+
     return Scaffold(
       appBar: AppBar(title: const Text('みんなの投稿')),
       bottomNavigationBar: const BottomNav(currentIndex: 1),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          itemCount: mockPosts.length,
-          itemBuilder: (context, i) {
-            final p = mockPosts[i];
+        child: StreamBuilder<List<Post>>(
+          stream: timeline.todayPostsStream(myUid: uid),
+          builder: (context, snapshot) {
+            // Firestoreの投稿を取得
+            final realPosts = snapshot.data ?? [];
 
-            return GestureDetector(
-              onTap: () => _showUserProfile(context, p),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.softGray.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
+            // モックデータと実際の投稿をマージ（実投稿を上に表示）
+            final allPosts = [...realPosts, ...mockPosts];
+
+            if (allPosts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 48,
+                      color: AppTheme.softGray.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'まだ投稿がありません',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(letterSpacing: 0.5),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// ユーザー行
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Color(p.userColor),
-                          child: Text(
-                            p.userName[0],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          p.userName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+              );
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              itemCount: allPosts.length,
+              itemBuilder: (context, i) {
+                final p = allPosts[i];
+
+                return GestureDetector(
+                  onTap: () => _showUserProfile(context, p),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.softGray.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 12),
-
-                    /// 投稿内容
-                    if (p.type == PostType.text && p.text != null)
-                      Text(
-                        p.text!,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.copyWith(height: 1.7),
-                      ),
-
-                    if (p.type == PostType.photo && p.photoUrl != null) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          p.photoUrl!,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// ユーザー行
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Color(p.userColor),
+                              child: Text(
+                                p.userName[0],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              p.userName,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+
+                        const SizedBox(height: 12),
+
+                        /// 投稿内容
+                        if (p.type == PostType.text && p.text != null)
+                          Text(
+                            p.text!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(height: 1.7),
+                          ),
+
+                        if (p.type == PostType.photo && p.photoUrl != null) ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: p.photoUrl!.startsWith('assets/')
+                                ? Image.asset(
+                                    p.photoUrl!,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    p.photoUrl!,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                            color: AppTheme.oliveGreen,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: Center(
+                                          child: Icon(Icons.broken_image),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
             );
           },
         ),

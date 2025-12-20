@@ -50,29 +50,73 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   /// 📤 プロフィール写真アップロード
   Future<String?> _uploadProfileImage(String uid) async {
-    if (_selectedImage == null) return null;
+    if (_selectedImage == null) {
+      print('⚠️ No image selected');
+      return null;
+    }
 
     try {
+      print('📤 Uploading image for uid: $uid');
+      print('📁 Image path: ${_selectedImage!.path}');
+
       final ref = FirebaseStorage.instance
           .ref()
           .child('profile_images')
           .child('$uid.jpg');
 
-      await ref.putFile(_selectedImage!);
-      final downloadUrl = await ref.getDownloadURL();
+      // ファイルをアップロード（TaskSnapshotを取得）
+      final uploadTask = ref.putFile(_selectedImage!);
+
+      // アップロードの完了を待つ
+      final snapshot = await uploadTask.whenComplete(() {
+        print('✅ Upload complete');
+      });
+
+      // アップロード完了後にダウンロードURLを取得
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      print('🔗 Download URL: $downloadUrl');
       return downloadUrl;
     } catch (e) {
-      print('画像アップロード失敗: $e');
+      print('❌ 画像アップロード失敗: $e');
+      if (e.toString().contains('permission-denied')) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('画像のアップロード権限がありません')),
+          );
+        }
+      }
       return null;
     }
   }
 
   /// 🔐 新規登録完了 → Firestore保存
   Future<void> _saveProfile() async {
+    // バリデーション
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('プロフィール写真を選択してください')),
+      );
+      return;
+    }
+
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('入力してください')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ユーザー名を入力してください')),
+      );
+      return;
+    }
+
+    if (_passController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('パスワードを入力してください')),
+      );
+      return;
+    }
+
+    if (_passController.text.trim().length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('パスワードは6文字以上にしてください')),
+      );
       return;
     }
 
@@ -81,12 +125,23 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     });
 
     try {
-      final user = FirebaseAuth.instance.currentUser!;
-      final uid = user.uid;
+      // Firebase認証でアカウント作成
+      final email = '${_nameController.text.trim()}@example.com';
+      final password = _passController.text.trim();
+
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = userCredential.user!.uid;
 
       // プロフィール写真アップロード
       final photoUrl = await _uploadProfileImage(uid);
+      print('📤 Uploaded photo URL: $photoUrl');
 
+      // Firestoreにユーザー情報保存
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'nickname': _nameController.text.trim(),
         'sns': _snsController.text.trim(),
@@ -95,14 +150,25 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      print('✅ User data saved to Firestore for uid: $uid');
+
       if (!mounted) return;
 
       // ✅ 登録完了 → home
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('保存に失敗しました: $e')));
+      if (!mounted) return;
+
+      String errorMessage = '登録に失敗しました';
+      if (e.toString().contains('email-already-in-use')) {
+        errorMessage = 'このユーザー名は既に使用されています';
+      } else if (e.toString().contains('weak-password')) {
+        errorMessage = 'パスワードが弱すぎます';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -177,7 +243,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
                       const FormLabel(text: 'パスワード*'),
                       const SizedBox(height: 10),
-                      InputField(controller: _passController),
+                      InputField(
+                        controller: _passController,
+                        obscureText: true,
+                      ),
 
                       const SizedBox(height: 20),
 
@@ -201,19 +270,26 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       elevation: 0,
                       padding: EdgeInsets.zero, // ← これ重要
                     ),
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    },
-                    child: const Center(
-                      child: Text(
-                        'はじめる',
-                        style: TextStyle(
-                          color: Color(0xFF3E4A78),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2, // ← 行高を固定
-                        ),
-                      ),
+                    onPressed: _isSaving ? null : _saveProfile,
+                    child: Center(
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF3E4A78),
+                              ),
+                            )
+                          : const Text(
+                              'はじめる',
+                              style: TextStyle(
+                                color: Color(0xFF3E4A78),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                              ),
+                            ),
                     ),
                   ),
                 ),
