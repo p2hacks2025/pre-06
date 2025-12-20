@@ -37,7 +37,7 @@ class _TimelineScreenState extends State<TimelineScreen>
       dayKey: '2025-01-18',
       type: PostType.photo,
       text: null,
-      photoUrl: 'assets/mock/photo1.jpg', // ← 仮画像①
+      photoUrl: 'assets/mock/photo1.jpg',
       userName: 'mahi',
       sns: 'noon61',
       userColor: 0xFF64B5F6,
@@ -61,10 +61,58 @@ class _TimelineScreenState extends State<TimelineScreen>
       dayKey: '2025-01-18',
       type: PostType.photo,
       text: null,
-      photoUrl: 'assets/mock/photo2.jpg', // ← 仮画像②
+      photoUrl: 'assets/mock/photo2.jpg',
       userName: 'miu',
       sns: 'mun-o2',
       userColor: 0xFFBA68C8,
+      createdAt: DateTime.now(),
+    ),
+    Post(
+      id: '5',
+      uid: 'u5',
+      dayKey: '2025-01-18',
+      type: PostType.text,
+      text: '風が少しだけ涼しかった',
+      photoUrl: null,
+      userName: 'hiro',
+      sns: 'hiroro',
+      userColor: 0xFFF08080,
+      createdAt: DateTime.now(),
+    ),
+    Post(
+      id: '6',
+      uid: 'u6',
+      dayKey: '2025-01-18',
+      type: PostType.photo,
+      text: null,
+      photoUrl: 'assets/mock/photo3.jpg',
+      userName: 'ao',
+      sns: 'aolog',
+      userColor: 0xFFBDB76B,
+      createdAt: DateTime.now(),
+    ),
+    Post(
+      id: '7',
+      uid: 'u7',
+      dayKey: '2025-01-18',
+      type: PostType.photo,
+      text: null,
+      photoUrl: 'assets/mock/photo4.jpg',
+      userName: 'natsu',
+      sns: 'natsudays',
+      userColor: 0xFF9370DB,
+      createdAt: DateTime.now(),
+    ),
+    Post(
+      id: '8',
+      uid: 'u8',
+      dayKey: '2025-01-18',
+      type: PostType.text,
+      text: 'イヤホンで好きな曲がちょうどいいところで流れた',
+      photoUrl: null,
+      userName: 'haru',
+      sns: 'harumemo',
+      userColor: 0xFF556B2F,
       createdAt: DateTime.now(),
     ),
   ];
@@ -169,10 +217,9 @@ class _TimelineScreenState extends State<TimelineScreen>
                     const SizedBox(height: 16),
                     Text(
                       'まだ投稿がありません',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(letterSpacing: 0.5),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(letterSpacing: 0.5),
                     ),
                   ],
                 ),
@@ -221,8 +268,9 @@ class _TimelineScreenState extends State<TimelineScreen>
                             const SizedBox(width: 12),
                             Text(
                               p.userName,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -233,10 +281,9 @@ class _TimelineScreenState extends State<TimelineScreen>
                         if (p.type == PostType.text && p.text != null)
                           Text(
                             p.text!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(height: 1.7),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.copyWith(height: 1.7),
                           ),
 
                         if (p.type == PostType.photo && p.photoUrl != null) ...[
@@ -252,20 +299,20 @@ class _TimelineScreenState extends State<TimelineScreen>
                                     p.photoUrl!,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
+                                    loadingBuilder: (context, child, loadingProgress) {
                                       if (loadingProgress == null) return child;
                                       return AspectRatio(
                                         aspectRatio: 16 / 9,
                                         child: Center(
                                           child: CircularProgressIndicator(
-                                            value: loadingProgress
+                                            value:
+                                                loadingProgress
                                                         .expectedTotalBytes !=
                                                     null
                                                 ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
                                                 : null,
                                             color: AppTheme.oliveGreen,
                                           ),
