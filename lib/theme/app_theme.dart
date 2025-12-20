@@ -20,6 +20,7 @@ class AppTheme {
   static ThemeData get theme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'ZenMaru',
 
       scaffoldBackgroundColor: cream,
       primaryColor: softPink,

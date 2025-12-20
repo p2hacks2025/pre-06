@@ -278,7 +278,7 @@ class _PostScreenState extends State<PostScreen>
                       label: const Text('写真を選択'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.softGray.withOpacity(0.1),
-                        foregroundColor: AppTheme.oliveGreen,
+                        foregroundColor: AppTheme.terracotta,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
