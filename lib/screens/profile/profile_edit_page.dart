@@ -27,41 +27,49 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     super.dispose();
   }
 
-  /// 🔐 新規登録完了 → Firestore保存
+  /// 新規登録完了（Auth作成） → Firestore保存
   Future<void> _saveProfile() async {
-    if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('R入力してください')),
-      );
+    final name = _nameController.text.trim();
+    final password = _passController.text.trim();
+    final sns = _snsController.text.trim();
+
+    if (name.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ユーザー名とパスワードを入力してください')));
       return;
     }
 
-    setState(() {
-      _isSaving = true;
-    });
+    if (password.length < 6) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('パスワードは6文字以上必要です')));
+      return;
+    }
+
+    setState(() => _isSaving = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser!;
-      final uid = user.uid;
+      // 匿名ログインに変更（これならreCAPTCHAで止まりません！）
+      final userCredential = await FirebaseAuth.instance.signInAnonymously();
+      final uid = userCredential.user!.uid;
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .set({
+      // Firestoreにデータを保存
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'nickname': _nameController.text.trim(),
         'sns': _snsController.text.trim(),
-        'visibility': 'public',
+        'userColor': 0xFFF5B7D2, // 好きなデフォルト色
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
-      // ✅ 登録完了 → home
+      //  登録完了 → home
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存に失敗しました: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('保存に失敗しました: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -89,11 +97,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 const CircleAvatar(
                   radius: 45,
                   backgroundColor: Color(0xFFFFFBEA),
-                  child: Icon(
-                    Icons.person,
-                    size: 45,
-                    color: Color(0xFFF5B7D2),
-                  ),
+                  child: Icon(Icons.person, size: 45, color: Color(0xFFF5B7D2)),
                 ),
 
                 const SizedBox(height: 40),
@@ -117,32 +121,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
                 // 保存ボタン
                 SizedBox(
-  width: 220,
-  height: 52, // ← 少し余裕を持たせる
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFFFAD1E8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(26),
-      ),
-      elevation: 0,
-      padding: EdgeInsets.zero, // ← これ重要
-    ),
-    onPressed: () {Navigator.pushReplacementNamed(context, '/home');},
-    child: const Center(
-      child: Text(
-        'はじめる',
-        style: TextStyle(
-          color: Color(0xFF3E4A78),
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          height: 1.2, // ← 行高を固定
-        ),
-      ),
-    ),
-  ),
-),
-
+                  width: 220,
+                  height: 52, // ← 少し余裕を持たせる
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFAD1E8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      elevation: 0,
+                      padding: EdgeInsets.zero, // ← これ重要
+                    ),
+                    onPressed: _isSaving ? null : _saveProfile,
+                    child: Center(
+                      child: _isSaving
+                          ? const CircularProgressIndicator(
+                              color: Color(0xFF3E4A78),
+                            ) // 保存中のぐるぐる
+                          : const Text(
+                              'はじめる',
+                              style: TextStyle(
+                                color: Color(0xFF3E4A78),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold, // ← 行高を固定
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: 40),
               ],

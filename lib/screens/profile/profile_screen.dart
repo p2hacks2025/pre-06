@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../models/post_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,6 +19,7 @@ class ProfileScreen extends StatelessWidget {
       type: PostType.text,
       text: '今日は朝の光がきれいだった',
       photoUrl: null,
+      sns: 'sns',
       createdAt: DateTime.now(),
     ),
     Post(
@@ -28,6 +31,7 @@ class ProfileScreen extends StatelessWidget {
       type: PostType.text,
       text: 'コーヒーがいつもより美味しく感じた',
       photoUrl: null,
+      sns: 'sns',
       createdAt: DateTime.now(),
     ),
   ];
@@ -150,6 +154,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 現在ログイン中のユーザー情報を取得
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(title: const Text('プロフィール')),
       bottomNavigationBar: const BottomNav(currentIndex: 2),
@@ -158,15 +165,52 @@ class ProfileScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                children: const [
-                  CircleAvatar(radius: 36, child: Icon(Icons.person, size: 36)),
-                  SizedBox(height: 12),
-                  Text('muku-69'),
-                ],
+              child: FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user?.uid)
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final userData =
+                      snapshot.data?.data() as Map<String, dynamic>?;
+                  final name = userData?['nickname'] ?? '名無し';
+                  final sns = userData?['sns'] ?? '';
+
+                  return Column(
+                    children: [
+                      const CircleAvatar(
+                        radius: 36,
+                        child: Icon(Icons.person, size: 36),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      if (sns.isNotEmpty)
+                        Text(
+                          '@$sns',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
+
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(

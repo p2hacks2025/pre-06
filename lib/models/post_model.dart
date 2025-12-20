@@ -11,6 +11,7 @@ class Post {
   final String? photoUrl;
   final String userName;
   final int userColor;
+  final String sns;
   final DateTime createdAt;
   final DateTime? deletedAt;
 
@@ -23,6 +24,7 @@ class Post {
     this.photoUrl,
     required this.userName,
     required this.userColor,
+    required this.sns,
     required this.createdAt,
     this.deletedAt,
   });
@@ -40,6 +42,7 @@ class Post {
       photoUrl: data['photoUrl'] as String?,
       userName: data['userName'] ?? 'muku',
       userColor: data['userColor'] ?? 0xFF9E9E9E,
+      sns: data['sns'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       deletedAt: (data['deletedAt'] as Timestamp?)?.toDate(),
     );
