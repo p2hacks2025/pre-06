@@ -431,6 +431,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# others
+.flutter-plugins-dependencies
+
 # Firebase - Keep these files for your project
 # Uncomment if you want to ignore Firebase config files
 # android/app/google-services.json
