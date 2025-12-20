@@ -1,25 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:muku/services/user_service.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
-
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-//controller
-class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,25 +12,26 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Lumina',
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFF5B7D2),
-                  letterSpacing: 2,
-                ),
-              ),
+              // const Text(
+              //   'Lumina',
+              //   style: TextStyle(
+              //     fontSize: 48,
+              //     fontWeight: FontWeight.w600,
+              //     color: Color(0xFFF5B7D2),
+              //     letterSpacing: 2,
+              //   ),
+              // ),
+              const SizedBox(height: 64),
 
-              const SizedBox(height: 40),
+              const _Label(text: 'ユーザー名'),
+              const SizedBox(height: 6), //
+              const _InputField(),
 
-              const _Label(text: 'メールアドレス'), // Firebase Auth用に一旦メールとして扱います
-              _InputField(controller: _emailController),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               const _Label(text: 'パスワード'),
-              _InputField(controller: _passwordController, obscureText: true),
+              const SizedBox(height: 6),
+              const _InputField(obscureText: true),
 
               const SizedBox(height: 32),
 
@@ -63,29 +46,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: () async {
-                    //login process
-                    try {
-                      await FirebaseAuth.instance.signInWithEmailAndPassword(
-                        email: _emailController.text.trim(),
-                        password: _passwordController.text.trim(),
-                      );
-                      //go timeline screen
-                      if (mounted)
-                        Navigator.pushReplacementNamed(context, '/timeline');
-                    } catch (e) {
-                      //error review
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('ログイン失敗: $e')));
-                    }
-                  },
-
+                  onPressed: () {},
                   child: const Text(
                     'ログイン',
                     style: TextStyle(
                       color: Color(0xFF3E4A78),
-                      fontSize: 12,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -115,8 +81,7 @@ class _LoginPageState extends State<LoginPage> {
 
 class _InputField extends StatelessWidget {
   final bool obscureText;
-  final TextEditingController controller;
-  const _InputField({required this.controller, this.obscureText = false});
+  const _InputField({this.obscureText = false});
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +94,6 @@ class _InputField extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
-        controller: controller,
         obscureText: obscureText,
         decoration: const InputDecoration(border: InputBorder.none),
       ),
@@ -145,12 +109,9 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 260,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
     );
   }

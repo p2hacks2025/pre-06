@@ -27,44 +27,33 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     super.dispose();
   }
 
-  /// 新規登録完了（Auth作成） → Firestore保存
+  /// 🔐 新規登録完了 → Firestore保存
   Future<void> _saveProfile() async {
-    final name = _nameController.text.trim();
-    final password = _passController.text.trim();
-    final sns = _snsController.text.trim();
-
-    if (name.isEmpty || password.isEmpty) {
+    if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('ユーザー名とパスワードを入力してください')));
+      ).showSnackBar(const SnackBar(content: Text('入力してください')));
       return;
     }
 
-    if (password.length < 6) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('パスワードは6文字以上必要です')));
-      return;
-    }
-
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+    });
 
     try {
-      // 匿名ログインに変更（これならreCAPTCHAで止まりません！）
-      final userCredential = await FirebaseAuth.instance.signInAnonymously();
-      final uid = userCredential.user!.uid;
+      final user = FirebaseAuth.instance.currentUser!;
+      final uid = user.uid;
 
-      // Firestoreにデータを保存
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'nickname': _nameController.text.trim(),
         'sns': _snsController.text.trim(),
-        'userColor': 0xFFF5B7D2, // 好きなデフォルト色
+        'visibility': 'public',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
-      //  登録完了 → home
+      // ✅ 登録完了 → home
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       ScaffoldMessenger.of(
@@ -91,7 +80,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 88),
 
                 // アイコン（今は仮）
                 const CircleAvatar(
@@ -100,29 +89,36 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   child: Icon(Icons.person, size: 45, color: Color(0xFFF5B7D2)),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 56),
 
                 // ユーザー名
-                const FormLabel(text: 'ユーザー名*'),
-                InputField(controller: _nameController),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: [
+                      const FormLabel(text: 'ユーザー名*'),
+                      const SizedBox(height: 10),
+                      InputField(controller: _nameController),
 
-                const SizedBox(height: 16),
-                //パスワード
-                const FormLabel(text: 'パスワード*'),
-                InputField(controller: _passController),
+                      const SizedBox(height: 20),
 
-                const SizedBox(height: 16),
+                      const FormLabel(text: 'パスワード*'),
+                      const SizedBox(height: 10),
+                      InputField(controller: _passController),
 
-                // SNS
-                const FormLabel(text: 'SNS（任意）'),
-                InputField(controller: _snsController),
+                      const SizedBox(height: 20),
 
+                      const FormLabel(text: 'SNS（任意）'),
+                      const SizedBox(height: 10),
+                      InputField(controller: _snsController),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 32),
-
                 // 保存ボタン
                 SizedBox(
                   width: 220,
-                  height: 52, // ← 少し余裕を持たせる
+                  height: 40, // ← 少し余裕を持たせる
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFAD1E8),
@@ -132,25 +128,24 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       elevation: 0,
                       padding: EdgeInsets.zero, // ← これ重要
                     ),
-                    onPressed: _isSaving ? null : _saveProfile,
-                    child: Center(
-                      child: _isSaving
-                          ? const CircularProgressIndicator(
-                              color: Color(0xFF3E4A78),
-                            ) // 保存中のぐるぐる
-                          : const Text(
-                              'はじめる',
-                              style: TextStyle(
-                                color: Color(0xFF3E4A78),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold, // ← 行高を固定
-                              ),
-                            ),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                    child: const Center(
+                      child: Text(
+                        'はじめる',
+                        style: TextStyle(
+                          color: Color(0xFF3E4A78),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2, // ← 行高を固定
+                        ),
+                      ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 70),
               ],
             ),
           ),
