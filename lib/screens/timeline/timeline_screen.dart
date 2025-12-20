@@ -99,7 +99,8 @@ class _TimelineScreenState extends State<TimelineScreen>
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final uid = currentUser?.uid ?? 'anonymous';
     final timeline = TimelineService();
     final postService = PostService();
 
@@ -160,6 +161,18 @@ class _TimelineScreenState extends State<TimelineScreen>
               child: StreamBuilder<List<Post>>(
                 stream: timeline.todayPostsStream(myUid: uid),
                 builder: (context, snap) {
+                  if (snap.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          SizedBox(height: 16),
+                          Text('エラー: ${snap.error}'),
+                        ],
+                      ),
+                    );
+                  }
                   if (!snap.hasData) {
                     return Center(
                       child: CircularProgressIndicator(

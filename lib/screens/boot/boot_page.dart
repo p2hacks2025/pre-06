@@ -12,9 +12,9 @@ class _BootPageState extends State<BootPage> {
   void initState() {
     super.initState();
 
-    // build 後に login へ
+    // build 後に home へ（ログインなしで使用可能）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacementNamed(context, '/home');
     });
   }
 

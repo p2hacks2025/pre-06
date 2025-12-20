@@ -9,7 +9,11 @@ class PostService {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  String get _uid => FirebaseAuth.instance.currentUser!.uid;
+  String get _uid {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'anonymous';
+    return user.uid;
+  }
 
   Future<Map<String, dynamic>> _getMyProfile() async {
     final doc = await _db.collection('users').doc(_uid).get();

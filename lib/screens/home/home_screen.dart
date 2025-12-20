@@ -49,17 +49,27 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _load() async {
-    final p = await _prompt.getTodayPrompt();
-    final posted = await _post.hasPostedToday();
-    if (!mounted) return;
+    try {
+      final p = await _prompt.getTodayPrompt();
+      final posted = await _post.hasPostedToday();
+      if (!mounted) return;
 
-    setState(() {
-      promptText = p.text;
-      loading = false;
-      hasPostedToday = posted; //何回でも投稿できるようにするなら消す
-    });
+      setState(() {
+        promptText = p.text;
+        loading = false;
+        hasPostedToday = posted; //何回でも投稿できるようにするなら消す
+      });
 
-    _controller.forward();
+      _controller.forward();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        promptText = '小さな幸せ';
+        loading = false;
+        hasPostedToday = false;
+      });
+      _controller.forward();
+    }
   }
 
   @override
