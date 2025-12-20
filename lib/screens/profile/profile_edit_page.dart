@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import 'widgets/label.dart';
 import 'widgets/input_field.dart';
@@ -18,6 +21,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final TextEditingController _snsController = TextEditingController();
 
   bool _isSaving = false;
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -25,6 +30,41 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _passController.dispose();
     _snsController.dispose();
     super.dispose();
+  }
+
+  /// 📸 プロフィール写真選択
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
+
+  /// 📤 プロフィール写真アップロード
+  Future<String?> _uploadProfileImage(String uid) async {
+    if (_selectedImage == null) return null;
+
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_images')
+          .child('$uid.jpg');
+
+      await ref.putFile(_selectedImage!);
+      final downloadUrl = await ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('画像アップロード失敗: $e');
+      return null;
+    }
   }
 
   /// 🔐 新規登録完了 → Firestore保存
@@ -44,10 +84,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       final user = FirebaseAuth.instance.currentUser!;
       final uid = user.uid;
 
+      // プロフィール写真アップロード
+      final photoUrl = await _uploadProfileImage(uid);
+
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'nickname': _nameController.text.trim(),
         'sns': _snsController.text.trim(),
         'visibility': 'public',
+        'photoUrl': photoUrl,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -82,11 +126,40 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               children: [
                 const SizedBox(height: 88),
 
-                // アイコン（今は仮）
-                const CircleAvatar(
-                  radius: 45,
-                  backgroundColor: Color(0xFFFFFBEA),
-                  child: Icon(Icons.person, size: 45, color: Color(0xFFF5B7D2)),
+                // アイコン（タップで写真選択）
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 45,
+                        backgroundColor: const Color(0xFFFFFBEA),
+                        backgroundImage: _selectedImage != null
+                            ? FileImage(_selectedImage!)
+                            : null,
+                        child: _selectedImage == null
+                            ? const Icon(Icons.person,
+                                size: 45, color: Color(0xFFF5B7D2))
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFAD1E8),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            size: 16,
+                            color: Color(0xFF3E4A78),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 56),

@@ -30,7 +30,7 @@ class InputField extends StatelessWidget {
             decoration: const InputDecoration(
               border: InputBorder.none,
               isCollapsed: true,
-              contentPadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16),
             ),
 
             style: const TextStyle(

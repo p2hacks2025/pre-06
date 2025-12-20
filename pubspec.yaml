@@ -45,6 +45,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/mock/
+    - assets/images/
 
   fonts:
     - family: ZenMaru

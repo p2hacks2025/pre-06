@@ -19,12 +19,12 @@ class PostService {
     final doc = await _db.collection('users').doc(_uid).get();
     if (doc.exists) {
       return {
-        'nickname': doc.data()?['nickname'] ?? '名無し',
+        'nickname': doc.data()?['nickname'] ?? 'muku-69',
         'userColor': doc.data()?['userColor'] ?? 0xFFF5B7D2,
         'sns': doc.data()?['sns'] ?? '',
       };
     }
-    return {'nickname': '名無し', 'userColor': 0xFF9E9E9E};
+    return {'nickname': 'muku-69', 'userColor': 0xFF9E9E9E};
   }
 
   Future<bool> hasPostedToday() async {
