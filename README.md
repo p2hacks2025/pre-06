@@ -35,7 +35,8 @@ SNS疲れを感じているユーザーにとって、心理的負担の少な�
 Luminaは、使い続けることで自分だけのアルバムが完成していきます。後から振り返ったとき、普通の日常が「大切な思い出」になっていることに気づける点が、ユーザーにとっての大きな嬉しさです。
 
 ## スクリーンショット(任意)
-<img width="1920" height="1080" alt="サムネ" src="https://github.com/user-attachments/assets/afe37515-07ce-448e-b7b7-56fbc75ab24e" />
+<img width="1920" height="1080" alt="var2" src="https://github.com/user-attachments/assets/acfb0204-2113-4a17-b972-c97d710da40b" />
+
 
 ## 開発体制
 
