@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/post_model.dart';
 import 'day_key.dart';
 
 class PostService {
   final _db = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
 
   String get _uid {
     final user = FirebaseAuth.instance.currentUser;
@@ -51,27 +49,6 @@ class PostService {
     //if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
     final profile = await _getMyProfile();
 
-    final demoNames = [
-      'mun',
-      'noon',
-      'ばらね',
-      '73cham',
-      'ぺちか',
-      'ひろろん',
-      'あんぱん',
-      'たけ',
-    ]; //randome user name
-    // 2. その中からランダムに1つ選ぶ
-    final randomName = (demoNames..shuffle()).first;
-
-    final demoColors = [
-      0xFFE57373,
-      0xFF64B5F6,
-      0xFF81C784,
-      0xFFFFB74D,
-      0xFFBA68C8,
-    ];
-    final randomColorValue = (demoColors..shuffle()).first;
 
     await _db.collection('posts').add({
       'uid': _uid,
@@ -95,8 +72,9 @@ class PostService {
     }
 
     final dayKey = DayKey.fromNow(boundaryHour: 5);
-    if (await hasPostedToday())
+    if (await hasPostedToday()) {
       throw Exception('今日はすでに投稿済みです'); //何回でも投稿できるようにするなら変更
+    }
 
     //ダミー処理　バックできそうなら、変更！
     /* final path =
@@ -104,26 +82,6 @@ class PostService {
     final task = await _storage.ref(path).putFile(file);
     final url = await task.ref.getDownloadURL();
   */
-    final demoNames = [
-      'mun',
-      'noon',
-      'ばらね',
-      '73cham',
-      'ぺちか',
-      'ひろろん',
-      'あんぱん',
-      'たけ',
-    ];
-    final randomName = (demoNames..shuffle()).first;
-
-    final demoColors = [
-      0xFFE57373,
-      0xFF64B5F6,
-      0xFF81C784,
-      0xFFFFB74D,
-      0xFFBA68C8,
-    ];
-    final randomColorValue = (demoColors..shuffle()).first;
 
     final profile = await _getMyProfile();
 
