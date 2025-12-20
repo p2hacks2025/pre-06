@@ -32,4 +32,4 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
       - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --no-codesign
