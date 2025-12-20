@@ -72,7 +72,7 @@ class _TimelineScreenState extends State<TimelineScreen>
                 // 3. SNSユーザーネーム（例: @username）
                 // ※ まだデータがない場合はダミーを表示
                 Text(
-                  '@${p.userName.toLowerCase()}_flutter',
+                  (p.sns != null && p.sns!.isNotEmpty) ? '@${p.sns}' : '@未設定',
                   style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
 

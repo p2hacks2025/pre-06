@@ -7,9 +7,21 @@ import 'day_key.dart';
 
 class PostService {
   final _db = FirebaseFirestore.instance;
-  final _storage = FirebaseStorage.instance;
+  final _auth = FirebaseAuth.instance;
 
   String get _uid => FirebaseAuth.instance.currentUser!.uid;
+
+  Future<Map<String, dynamic>> _getMyProfile() async {
+    final doc = await _db.collection('users').doc(_uid).get();
+    if (doc.exists) {
+      return {
+        'nickname': doc.data()?['nickname'] ?? '名無し',
+        'userColor': doc.data()?['userColor'] ?? 0xFFF5B7D2,
+        'sns': doc.data()?['sns'] ?? '',
+      };
+    }
+    return {'nickname': '名無し', 'userColor': 0xFF9E9E9E};
+  }
 
   Future<bool> hasPostedToday() async {
     final dayKey = DayKey.fromNow(boundaryHour: 5);
@@ -33,6 +45,7 @@ class PostService {
 
     final dayKey = DayKey.fromNow(boundaryHour: 5);
     //if (await hasPostedToday()) throw Exception('今日はすでに投稿済みです');
+    final profile = await _getMyProfile();
 
     final demoNames = [
       'mun',
@@ -62,8 +75,9 @@ class PostService {
       'type': 'text',
       'text': trimmed,
       'photoUrl': null,
-      'userName': randomName, //username
-      'userColor': randomColorValue, //icon color
+      'userName': profile['nickname'], //username
+      'userColor': profile['userColor'], //icon color
+      'sns': profile['sns'],
       'createdAt': FieldValue.serverTimestamp(),
       'deletedAt': null,
     });
@@ -107,6 +121,8 @@ class PostService {
     ];
     final randomColorValue = (demoColors..shuffle()).first;
 
+    final profile = await _getMyProfile();
+
     final fakeUrl = file.path;
     //ダミー処理　ここまで！
 
@@ -116,8 +132,9 @@ class PostService {
       'type': 'photo',
       'text': null,
       'photoUrl': fakeUrl,
-      'userName': randomName,
-      'userColor': randomColorValue,
+      'userName': profile['nickname'],
+      'userColor': profile['userColor'],
+      'sns': profile['sns'],
       'createdAt': FieldValue.serverTimestamp(),
       'deletedAt': null,
     });
