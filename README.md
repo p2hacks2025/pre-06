@@ -1,8 +1,7 @@
 # P2HACKS2025 アピールシート
 
 ## プロダクト名
-<img width="501" height="286" alt="lumina" src="https://github.com/user-attachments/assets/d1bfa7ff-3db3-4214-910a-afa8d603151d" />
-Lumina-ルミナ
+Lumina ルミナ
 
 ## コンセプト
 Luminaは、毎日出されるお題をきっかけに、何気ない日常を思い出として残すアプリです。
