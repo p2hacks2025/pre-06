@@ -52,44 +52,19 @@ class ProfileScreen extends StatelessWidget {
   ];
 
   void _showPostDetail(BuildContext context, Post post) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.2),
-      builder: (_) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-          decoration: BoxDecoration(
-            color: AppTheme.cream,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 30,
-                offset: const Offset(0, -10),
-              ),
-            ],
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: SafeArea(
-            top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// --- ハンドル ---
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: AppTheme.softGray.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-
                 /// --- 日付 ---
                 Text(
                   post.dayKey,
@@ -138,25 +113,26 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 /// --- 投稿本文 ---
-                Text(
-                  post.text ?? '',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: 17,
-                    height: 1.8,
-                    letterSpacing: 0.3,
+                if (post.text != null && post.text!.isNotEmpty)
+                  Text(
+                    post.text!,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: 17,
+                      height: 1.8,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
 
                 /// --- 閉じるボタン ---
                 Center(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('閉じる'),
+                    child: const Text('とじる'),
                   ),
                 ),
               ],
