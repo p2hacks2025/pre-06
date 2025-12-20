@@ -14,6 +14,7 @@ class Post {
   final String sns;
   final DateTime createdAt;
   final DateTime? deletedAt;
+  final String? theme;
 
   Post({
     required this.id,
@@ -27,6 +28,7 @@ class Post {
     required this.sns,
     required this.createdAt,
     this.deletedAt,
+    this.theme,
   });
 
   factory Post.fromDoc(DocumentSnapshot doc) {
@@ -45,6 +47,7 @@ class Post {
       sns: data['sns'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       deletedAt: (data['deletedAt'] as Timestamp?)?.toDate(),
+      theme: data['theme'] as String?,
     );
   }
 }
